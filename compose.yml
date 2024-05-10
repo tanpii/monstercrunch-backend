@@ -1,0 +1,67 @@
+services:
+  postgresql:
+    image: postgres:16
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: cookieshop
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - postgresql:/var/lib/postgresql/
+    networks:
+      - backend
+
+  liquibase-migrations:
+    image: liquibase/liquibase:4.25
+    depends_on:
+      - postgresql
+    command:
+      - --changelog-file=master.xml
+      - --driver=org.postgresql.Driver
+      - --url=jdbc:postgresql://postgresql:5432/cookieshop
+      - --username=postgres
+      - --password=postgres
+      - update
+    volumes:
+      - ./src/main/migrations:/liquibase/changelog
+    networks:
+      - backend
+
+  monstercrunch:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgresql
+      - liquibase-migrations
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgresql:5432/cookieshop
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+      - MINIO_URL=http://158.160.154.243:9000
+    networks:
+      - backend
+
+  minio:
+    image: docker.io/bitnami/minio:latest
+    ports:
+      - '9000:9000'
+      - '9001:9001'
+    networks:
+      - backend
+    volumes:
+      - minio_data:/data
+    environment:
+      - MINIO_ROOT_USER=miniouser
+      - MINIO_ROOT_PASSWORD=miniouser
+
+volumes:
+  postgresql: { }
+  minio_data:
+    driver: local
+
+networks:
+  backend: { }

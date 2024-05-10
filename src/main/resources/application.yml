@@ -1,0 +1,33 @@
+spring:
+  application:
+    name: candy_shop
+  liquibase:
+    enabled: false
+  datasource:
+    url: jdbc:postgresql://localhost:5432/cookieshop
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    show-sql: false
+
+server:
+  port: 8080
+
+logging:
+  config: classpath:log4j2-plain.xml
+
+minio:
+  bucket: products
+  comment: comments
+  url: ${MINIO_URL:http://localhost:9000}
+  access_key: minioadmin
+  secret_key: minioadmin
+
+token:
+  secret:
+    key: 48a868a4042f634ac04a117f00a87202131dd7c46c4b32c4acb3edc5e15f4511
+  expiration: 3600000
